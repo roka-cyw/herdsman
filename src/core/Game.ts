@@ -50,7 +50,15 @@ export default class Game {
 
   private setupResize(): void {
     window.addEventListener('resize', () => {
-      this.app.renderer.resize(Math.floor(this.container.clientWidth), Math.floor(this.container.clientHeight))
+      const newWidth = Math.floor(this.container.clientWidth)
+      const newHeight = Math.floor(this.container.clientHeight)
+
+      this.app.renderer.resize(newWidth, newHeight)
+
+      // Notify MainScene about resize
+      if (this.currentScene && 'onResize' in this.currentScene) {
+        ;(this.currentScene as MainScene).onResize(newWidth, newHeight)
+      }
     })
   }
 
