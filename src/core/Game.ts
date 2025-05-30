@@ -3,9 +3,11 @@ import * as PIXI from 'pixi.js'
 import LoadingScene from '../scenes/LoadingScene'
 import MainScene from '../scenes/MainScene'
 
-import { BLACK_WIDNOW } from '../utils/constants'
+type Scene = LoadingScene | MainScene
 
 export default class Game {
+  private static readonly BLACK_WIDNOW = 0x000000
+
   public app: PIXI.Application
   private container: HTMLElement
   private currentScene: LoadingScene | MainScene | null = null
@@ -19,7 +21,7 @@ export default class Game {
     await this.app.init({
       width: Math.floor(this.container.clientWidth),
       height: Math.floor(this.container.clientHeight),
-      backgroundColor: BLACK_WIDNOW
+      backgroundColor: Game.BLACK_WIDNOW
     })
 
     this.container.appendChild(this.app.canvas as HTMLCanvasElement)
@@ -55,10 +57,8 @@ export default class Game {
 
       this.app.renderer.resize(newWidth, newHeight)
 
-      // Notify MainScene about resize
-      if (this.currentScene && 'onResize' in this.currentScene) {
-        ;(this.currentScene as MainScene).onResize(newWidth, newHeight)
-      }
+      // Notify Scenes about resize
+      ;(this.currentScene as Scene).onResize(newWidth, newHeight)
     })
   }
 
