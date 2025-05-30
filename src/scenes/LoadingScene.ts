@@ -1,5 +1,12 @@
 import * as PIXI from 'pixi.js'
 
+import {
+  LOADING_SCENE_COLOR,
+  START_BUTTON_BORDER,
+  START_BUTTON_COLOR,
+  START_BUTTON_TEXT_COLOR
+} from '../utils/constants'
+
 export default class LoadingScene {
   private app: PIXI.Application
   private container: PIXI.Container
@@ -20,7 +27,7 @@ export default class LoadingScene {
   private createBackground(): void {
     const bg = new PIXI.Graphics()
     bg.rect(0, 0, this.app.screen.width, this.app.screen.height)
-    bg.fill(0xff0000)
+    bg.fill(LOADING_SCENE_COLOR)
     this.container.addChild(bg)
   }
 
@@ -28,15 +35,16 @@ export default class LoadingScene {
     const buttonContainer = new PIXI.Container()
 
     const button = new PIXI.Graphics()
-    button.rect(-100, -50, 200, 100)
-    button.fill(0xffffff)
+    button.roundRect(-100, -50, 200, 100, 10)
+    button.fill(START_BUTTON_COLOR)
+    button.stroke({ color: START_BUTTON_BORDER, width: 2 })
 
     const buttonText = new PIXI.Text({
       text: 'START GAME',
       style: {
         fontSize: 24,
         fontWeight: 'bold',
-        fill: 0x000000,
+        fill: START_BUTTON_TEXT_COLOR,
         fontFamily: 'Arial'
       }
     })

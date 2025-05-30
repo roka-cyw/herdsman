@@ -1,5 +1,7 @@
 import * as PIXI from 'pixi.js'
 
+import { GRASS_COLOR } from '../utils/constants'
+
 export default class MainScene {
   private app: PIXI.Application
   private container: PIXI.Container
@@ -17,7 +19,7 @@ export default class MainScene {
   private createGameField(): void {
     const gameField = new PIXI.Graphics()
     gameField.rect(0, 0, this.app.screen.width, this.app.screen.height)
-    gameField.fill(0x4caf50)
+    gameField.fill(GRASS_COLOR)
     this.container.addChild(gameField)
   }
 

@@ -3,6 +3,8 @@ import * as PIXI from 'pixi.js'
 import LoadingScene from '../scenes/LoadingScene'
 import MainScene from '../scenes/MainScene'
 
+import { BLACK_WIDNOW } from '../utils/constants'
+
 export default class Game {
   public app: PIXI.Application
   private container: HTMLElement
@@ -17,7 +19,7 @@ export default class Game {
     await this.app.init({
       width: Math.floor(this.container.clientWidth),
       height: Math.floor(this.container.clientHeight),
-      backgroundColor: 0x000000
+      backgroundColor: BLACK_WIDNOW
     })
 
     this.container.appendChild(this.app.canvas as HTMLCanvasElement)
