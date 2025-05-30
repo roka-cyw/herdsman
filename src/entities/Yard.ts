@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 
-import { StaticObject } from '../core/StaticObject'
+import { StaticObject } from '../core/abstracts/StaticObject'
 
 export default class Yard extends StaticObject {
   private static readonly YARD_COLOR = 0xffd966

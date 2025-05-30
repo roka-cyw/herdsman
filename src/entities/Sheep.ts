@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 
-import { MovableObject } from '../core/MovableObject'
+import { MovableObject } from '../core/abstracts/MovableObject'
 
 export default class Sheep extends MovableObject {
   private static readonly SHEEP_COLOR = 0xffffff

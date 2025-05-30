@@ -4,14 +4,20 @@ import { Scene } from '../core/Scene'
 import Herdsman from '../entities/Herdsman'
 import Sheep from '../entities/Sheep'
 import Yard from '../entities/Yard'
+import DisplayScore from '../systems/ui/DisplayScore'
+import { UIElement } from '../core/abstracts/UIElement'
 
 export default class MainScene extends Scene {
   private static readonly GRASS_COLOR = 0x4caf50
   private static readonly SHEEP_OFFSET = 4
+  private static readonly DISPLAY_SCORE_TOP_OFFSET = 20
+  private static readonly DISPLAY_SCORE_WIDTH_WITH_OFFSET = 180
 
   private herdsman!: Herdsman
   private sheep: Sheep[] = []
   private yard!: Yard
+  private displayScore!: DisplayScore
+  private uiElements: UIElement[] = []
 
   private clickHandler?: (event: PIXI.FederatedPointerEvent) => void
   private gameLoopFn?: (ticker: PIXI.Ticker) => void
@@ -24,18 +30,15 @@ export default class MainScene extends Scene {
     this.app.stage.addChild(this.container)
     this.createGameField()
 
+    // Create Game Objects
     this.createHerdsman()
     this.createSheeps()
     this.createYard()
 
-    this.startGameLoop()
-  }
+    // Create UI Elements
+    this.createDisplayScore()
 
-  private createGameField(): void {
-    this.gameField = new PIXI.Graphics()
-    this.gameField.rect(0, 0, this.app.screen.width, this.app.screen.height)
-    this.gameField.fill(MainScene.GRASS_COLOR)
-    this.container.addChild(this.gameField)
+    this.startGameLoop()
   }
 
   private startGameLoop(): void {
@@ -45,6 +48,13 @@ export default class MainScene extends Scene {
     }
 
     this.app.ticker.add(this.gameLoopFn)
+  }
+
+  private createGameField(): void {
+    this.gameField = new PIXI.Graphics()
+    this.gameField.rect(0, 0, this.app.screen.width, this.app.screen.height)
+    this.gameField.fill(MainScene.GRASS_COLOR)
+    this.container.addChild(this.gameField)
   }
 
   private createHerdsman(): void {
@@ -72,6 +82,16 @@ export default class MainScene extends Scene {
     this.container.addChild(this.yard.getDisplayObject())
   }
 
+  private createDisplayScore(): void {
+    this.displayScore = new DisplayScore(
+      this.app.screen.width - MainScene.DISPLAY_SCORE_WIDTH_WITH_OFFSET,
+      MainScene.DISPLAY_SCORE_TOP_OFFSET
+    )
+    this.container.addChild(this.displayScore.getContainer())
+
+    this.uiElements.push(this.displayScore)
+  }
+
   private setupClickHandler(herdsman: Herdsman): void {
     this.app.stage.interactive = true
 
@@ -94,9 +114,13 @@ export default class MainScene extends Scene {
   public onResize(newWidth: number, newHeight: number): void {
     this.updateGameField(newWidth, newHeight)
 
+    // Recalculate objects positions on the scene
     this.recalculateHerdsmanPosition(newWidth, newHeight)
     this.recalculateSheepPositions(newWidth, newHeight)
     this.recalculateYardPosition(newWidth, newHeight)
+
+    // Recalculate UI elements positions on the scene
+    this.recalculateUIElements(newWidth, newHeight)
   }
 
   private recalculateHerdsmanPosition(newWidth: number, newHeight: number): void {
@@ -111,6 +135,10 @@ export default class MainScene extends Scene {
 
   private recalculateYardPosition(newWidth: number, newHeight: number): void {
     this.yard.setPosition(newWidth - newWidth + MainScene.SHEEP_OFFSET, newHeight - newHeight + MainScene.SHEEP_OFFSET)
+  }
+
+  private recalculateUIElements(newWidth: number, newHeight: number): void {
+    this.uiElements.forEach(ui => ui.resize(newWidth, newHeight))
   }
 
   private destroyEntities(): void {

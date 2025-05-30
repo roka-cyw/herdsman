@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 
-import { MovableObject } from '../core/MovableObject'
+import { MovableObject } from '../core/abstracts/MovableObject'
 
 export default class Herdsman extends MovableObject {
   private static readonly HERDSMAN_COLOR = 0xff0000
