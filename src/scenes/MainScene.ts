@@ -7,6 +7,7 @@ export default class MainScene extends Scene {
   private static readonly GRASS_COLOR = 0x4caf50
 
   private herdsman!: Herdsman
+  private clickHandler?: (event: PIXI.FederatedPointerEvent) => void
 
   constructor(app: PIXI.Application) {
     super(app)
@@ -19,6 +20,8 @@ export default class MainScene extends Scene {
     this.herdsman = new Herdsman(this.app.screen.width * 0.85, this.app.screen.height * 0.85)
     this.container.addChild(this.herdsman.getDisplayObject())
     this.setupClickHandler(this.herdsman)
+
+    this.startGameLoop()
   }
 
   private createGameField(): void {
@@ -28,12 +31,24 @@ export default class MainScene extends Scene {
     this.container.addChild(this.gameField)
   }
 
+  private startGameLoop(): void {
+    this.app.ticker.add(ticker => {
+      const deltaTime = ticker.deltaTime / 60 // convert to seconds
+
+      this.herdsman.update(deltaTime)
+    })
+  }
+
   private setupClickHandler(herdsman: Herdsman): void {
     this.app.stage.interactive = true
-    this.app.stage.on('pointerdown', event => {
+
+    // Save link for deleting if needed
+    this.clickHandler = (event: PIXI.FederatedPointerEvent) => {
       const globalPos = event.global
       herdsman.moveToPosition(globalPos.x, globalPos.y)
-    })
+    }
+
+    this.app.stage.on('pointerdown', this.clickHandler)
   }
 
   protected updateGameField(newWidth: number, newHeight: number): void {
@@ -49,5 +64,15 @@ export default class MainScene extends Scene {
 
     // Recalculate objects positions on the scene
     this.herdsman.setPosition(newWidth * 0.85, newHeight * 0.85)
+  }
+
+  public destroy(): void {
+    // Delete handler if scene was destroyed
+    if (this.clickHandler) {
+      this.app.stage.off('pointerdown', this.clickHandler)
+      this.clickHandler = undefined
+    }
+
+    super.destroy()
   }
 }

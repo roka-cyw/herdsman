@@ -54,7 +54,8 @@ export default class LoadingScene extends Scene {
 
     this.buttonContainer.interactive = true
     this.buttonContainer.cursor = 'pointer'
-    this.buttonContainer.on('pointerdown', () => {
+    this.buttonContainer.on('pointerdown', e => {
+      e.stopPropagation()
       this.onComplete()
     })
 

@@ -5,7 +5,7 @@ import { MovableObject } from '../core/MovableObject'
 export default class Herdsman extends MovableObject {
   private static readonly HERDSMAN_COLOR = 0xff0000
   private static readonly HERDSMAN_RADIUS = 20
-  private static readonly HERDSMAN_SPEED = 150
+  private static readonly HERDSMAN_SPEED = 1500
 
   constructor(x: number, y: number) {
     super(x, y)
