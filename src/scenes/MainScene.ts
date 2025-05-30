@@ -3,13 +3,18 @@ import * as PIXI from 'pixi.js'
 import { Scene } from '../core/Scene'
 import Herdsman from '../entities/Herdsman'
 import Sheep from '../entities/Sheep'
+import Yard from '../entities/Yard'
 
 export default class MainScene extends Scene {
   private static readonly GRASS_COLOR = 0x4caf50
+  private static readonly SHEEP_OFFSET = 4
 
   private herdsman!: Herdsman
   private sheep: Sheep[] = []
+  private yard!: Yard
+
   private clickHandler?: (event: PIXI.FederatedPointerEvent) => void
+  private gameLoopFn?: (ticker: PIXI.Ticker) => void
 
   constructor(app: PIXI.Application) {
     super(app)
@@ -21,6 +26,7 @@ export default class MainScene extends Scene {
 
     this.createHerdsman()
     this.createSheeps()
+    this.createYard()
 
     this.startGameLoop()
   }
@@ -33,11 +39,12 @@ export default class MainScene extends Scene {
   }
 
   private startGameLoop(): void {
-    this.app.ticker.add(ticker => {
+    this.gameLoopFn = ticker => {
       const deltaTime = ticker.deltaTime / 60 // convert to seconds
-
       this.herdsman.update(deltaTime)
-    })
+    }
+
+    this.app.ticker.add(this.gameLoopFn)
   }
 
   private createHerdsman(): void {
@@ -60,10 +67,14 @@ export default class MainScene extends Scene {
     }
   }
 
+  private createYard(): void {
+    this.yard = new Yard(MainScene.SHEEP_OFFSET, MainScene.SHEEP_OFFSET)
+    this.container.addChild(this.yard.getDisplayObject())
+  }
+
   private setupClickHandler(herdsman: Herdsman): void {
     this.app.stage.interactive = true
 
-    // Save link for deleting if needed
     this.clickHandler = (event: PIXI.FederatedPointerEvent) => {
       const globalPos = event.global
       herdsman.moveToPosition(globalPos.x, globalPos.y)
@@ -85,6 +96,7 @@ export default class MainScene extends Scene {
 
     this.recalculateHerdsmanPosition(newWidth, newHeight)
     this.recalculateSheepPositions(newWidth, newHeight)
+    this.recalculateYardPosition(newWidth, newHeight)
   }
 
   private recalculateHerdsmanPosition(newWidth: number, newHeight: number): void {
@@ -97,8 +109,39 @@ export default class MainScene extends Scene {
     })
   }
 
+  private recalculateYardPosition(newWidth: number, newHeight: number): void {
+    this.yard.setPosition(newWidth - newWidth + MainScene.SHEEP_OFFSET, newHeight - newHeight + MainScene.SHEEP_OFFSET)
+  }
+
+  private destroyEntities(): void {
+    if (this.herdsman) {
+      this.herdsman.getDisplayObject().destroy()
+      console.log('Herdsman destroyed')
+    }
+
+    if (this.yard) {
+      this.yard.getDisplayObject().destroy()
+      console.log('Yard destroyed')
+    }
+
+    this.sheep.forEach((sheep, index) => {
+      sheep.getDisplayObject().destroy()
+      console.log(`Sheep ${index} destroyed`)
+    })
+    this.sheep = []
+  }
+
   public destroy(): void {
-    // Delete handler if scene was destroyed
+    // Delete game loop
+    if (this.gameLoopFn) {
+      this.app.ticker.remove(this.gameLoopFn)
+      this.gameLoopFn = undefined
+    }
+
+    // Delete entities
+    this.destroyEntities()
+
+    // Delete events
     if (this.clickHandler) {
       this.app.stage.off('pointerdown', this.clickHandler)
       this.clickHandler = undefined
