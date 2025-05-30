@@ -2,11 +2,13 @@ import * as PIXI from 'pixi.js'
 
 import { Scene } from '../core/Scene'
 import Herdsman from '../entities/Herdsman'
+import Sheep from '../entities/Sheep'
 
 export default class MainScene extends Scene {
   private static readonly GRASS_COLOR = 0x4caf50
 
   private herdsman!: Herdsman
+  private sheep: Sheep[] = []
   private clickHandler?: (event: PIXI.FederatedPointerEvent) => void
 
   constructor(app: PIXI.Application) {
@@ -17,9 +19,8 @@ export default class MainScene extends Scene {
     this.app.stage.addChild(this.container)
     this.createGameField()
 
-    this.herdsman = new Herdsman(this.app.screen.width * 0.85, this.app.screen.height * 0.85)
-    this.container.addChild(this.herdsman.getDisplayObject())
-    this.setupClickHandler(this.herdsman)
+    this.createHerdsman()
+    this.createSheeps()
 
     this.startGameLoop()
   }
@@ -37,6 +38,26 @@ export default class MainScene extends Scene {
 
       this.herdsman.update(deltaTime)
     })
+  }
+
+  private createHerdsman(): void {
+    this.herdsman = new Herdsman(this.app.screen.width * 0.85, this.app.screen.height * 0.85)
+    this.container.addChild(this.herdsman.getDisplayObject())
+
+    this.setupClickHandler(this.herdsman)
+  }
+
+  private createSheeps(): void {
+    const sheepCount = Math.floor(Math.random() * 9) + 2 // Range 2-10
+
+    for (let i = 0; i < sheepCount; i++) {
+      const randomX = Math.random() * this.app.screen.width
+      const randomY = Math.random() * this.app.screen.height
+
+      const sheep = new Sheep(randomX, randomY)
+      this.sheep.push(sheep)
+      this.container.addChild(sheep.getDisplayObject())
+    }
   }
 
   private setupClickHandler(herdsman: Herdsman): void {
@@ -62,8 +83,18 @@ export default class MainScene extends Scene {
   public onResize(newWidth: number, newHeight: number): void {
     this.updateGameField(newWidth, newHeight)
 
-    // Recalculate objects positions on the scene
+    this.recalculateHerdsmanPosition(newWidth, newHeight)
+    this.recalculateSheepPositions(newWidth, newHeight)
+  }
+
+  private recalculateHerdsmanPosition(newWidth: number, newHeight: number): void {
     this.herdsman.setPosition(newWidth * 0.85, newHeight * 0.85)
+  }
+
+  private recalculateSheepPositions(newWidth: number, newHeight: number): void {
+    this.sheep.forEach(sheep => {
+      sheep.setPosition(Math.random() * newWidth, Math.random() * newHeight)
+    })
   }
 
   public destroy(): void {
