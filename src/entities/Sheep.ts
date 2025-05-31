@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js'
+import { v4 as uuidv4 } from 'uuid'
 
 import { MovableObject } from '../core/abstracts/MovableObject'
 import Herdsman from './Herdsman'
@@ -7,6 +8,7 @@ export default class Sheep extends MovableObject {
   private static readonly SHEEP_COLOR = 0xffffff
   private static readonly SHEEP_RADIUS = 14
   private static readonly SHEEP_SPEED = 700
+  private id: string
 
   private isFollowing: boolean = false
   private sheepCircle!: PIXI.Graphics
@@ -15,6 +17,7 @@ export default class Sheep extends MovableObject {
   constructor(x: number, y: number) {
     super(x, y)
     this.speed = Sheep.SHEEP_SPEED
+    this.id = uuidv4()
   }
 
   protected createDisplayObject(): PIXI.Container {
@@ -53,5 +56,9 @@ export default class Sheep extends MovableObject {
 
   public setHerdsman(herdsman: Herdsman): void {
     this.herdsman = herdsman
+  }
+
+  public getId(): string {
+    return this.id
   }
 }

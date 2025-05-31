@@ -3,16 +3,17 @@ import * as PIXI from 'pixi.js'
 import { UIElement } from '../../core/abstracts/UIElement'
 
 export default class DisplayScore extends UIElement {
+  private static readonly DISPLAY_SCORE = 0xffffff
   private static readonly DISPLAY_SCORE_TOP_OFFSET = 20
   private static readonly DISPLAY_SCORE_WIDTH_WITH_OFFSET = 180
 
   private scoreText!: PIXI.Text
-  private score: number = 0
+  private score: number = Number(0)
 
   protected createContent(): void {
     this.scoreText = new PIXI.Text({
-      text: 'Score: 0',
-      style: { fontSize: 32, fill: 0xffffff }
+      text: `Score: ${this.score || 0}`,
+      style: { fontSize: 32, fill: DisplayScore.DISPLAY_SCORE }
     })
 
     this.container.addChild(this.scoreText)
@@ -27,6 +28,8 @@ export default class DisplayScore extends UIElement {
 
   public addPoints(points: number): void {
     this.score += points
-    this.scoreText.text = `Score: ${this.score}`
+    this.container.removeChildren()
+
+    this.createContent()
   }
 }

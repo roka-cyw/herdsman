@@ -19,4 +19,12 @@ export default class Yard extends StaticObject {
     container.addChild(yard)
     return container
   }
+
+  public getWidth(): number {
+    return this.displayObject.width
+  }
+
+  public getHeight(): number {
+    return this.displayObject.height
+  }
 }

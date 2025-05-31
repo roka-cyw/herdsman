@@ -12,9 +12,12 @@ export default class MainScene extends Scene {
   private static readonly SHEEP_OFFSET = 4
   private static readonly DISPLAY_SCORE_TOP_OFFSET = 20
   private static readonly DISPLAY_SCORE_WIDTH_WITH_OFFSET = 180
+  private static readonly OVERLAP_YARD_COLLISION_AREA = 100
 
   private herdsman!: Herdsman
   private sheep: Sheep[] = []
+  private followingSheep: Sheep[] = []
+
   private yard!: Yard
   private displayScore!: DisplayScore
   private uiElements: UIElement[] = []
@@ -48,24 +51,10 @@ export default class MainScene extends Scene {
       this.sheep.forEach(sheep => sheep.update(deltaTime))
 
       this.checkHerdsmanSheepCollisions()
+      this.checkHerdsmanYardCollision()
     }
 
     this.app.ticker.add(this.gameLoopFn)
-  }
-
-  private checkHerdsmanSheepCollisions(): void {
-    this.sheep.forEach(sheep => {
-      if (this.herdsman.checkCollision(sheep)) {
-        if (!sheep.getIsFollowing() && this.herdsman.canAddFollower()) {
-          sheep.setFollowing(true)
-          sheep.setHerdsman(this.herdsman)
-          this.herdsman.addFollower()
-          console.log('Sheep is now following!')
-        } else if (!sheep.getIsFollowing()) {
-          console.log('Maximum followers reached! (5/5)')
-        }
-      }
-    })
   }
 
   private createGameField(): void {
@@ -121,24 +110,48 @@ export default class MainScene extends Scene {
     this.app.stage.on('pointerdown', this.clickHandler)
   }
 
-  protected updateGameField(newWidth: number, newHeight: number): void {
-    if (this.gameField) {
-      this.gameField.clear() // Destroy old graphic
-      this.gameField.rect(0, 0, newWidth, newHeight)
-      this.gameField.fill(MainScene.GRASS_COLOR)
+  private checkHerdsmanSheepCollisions(): void {
+    this.sheep.forEach(sheep => {
+      if (this.herdsman.checkCollision(sheep)) {
+        if (!sheep.getIsFollowing() && this.herdsman.canAddFollower()) {
+          sheep.setFollowing(true)
+          sheep.setHerdsman(this.herdsman)
+          this.followingSheep.push(sheep)
+          this.herdsman.addFollower()
+          console.log('Sheep is now following!')
+        } else if (!sheep.getIsFollowing()) {
+          console.log('Maximum followers reached! (5/5)')
+        }
+      }
+    })
+  }
+
+  private checkHerdsmanYardCollision(): void {
+    const yardCollisionArea = this.yard.getWidth() + MainScene.OVERLAP_YARD_COLLISION_AREA
+
+    if (this.herdsman.checkCollision(this.yard, yardCollisionArea)) {
+      this.deliverSheepToYard()
     }
   }
 
-  public onResize(newWidth: number, newHeight: number): void {
-    this.updateGameField(newWidth, newHeight)
+  private deliverSheepToYard(): void {
+    if (this.followingSheep.length > 0) {
+      const sheepIdsToRemove = this.followingSheep.map(sheep => sheep.getId())
+      this.sheep = this.sheep.filter(sheep => !sheepIdsToRemove.includes(sheep.getId()))
 
-    // Recalculate objects positions on the scene
-    this.recalculateHerdsmanPosition(newWidth, newHeight)
-    this.recalculateSheepPositions(newWidth, newHeight)
-    this.recalculateYardPosition(newWidth, newHeight)
+      this.displayScore.addPoints(this.followingSheep.length * 1)
 
-    // Recalculate UI elements positions on the scene
-    this.recalculateUIElements(newWidth, newHeight)
+      this.clearDeliveredSheep()
+    }
+  }
+
+  private clearDeliveredSheep(): void {
+    this.herdsman.removeAllFollowers()
+
+    this.followingSheep.forEach(sheep => {
+      sheep.getDisplayObject().destroy()
+    })
+    this.followingSheep = []
   }
 
   private recalculateHerdsmanPosition(newWidth: number, newHeight: number): void {
@@ -175,6 +188,26 @@ export default class MainScene extends Scene {
       console.log(`Sheep ${index} destroyed`)
     })
     this.sheep = []
+  }
+
+  protected updateGameField(newWidth: number, newHeight: number): void {
+    if (this.gameField) {
+      this.gameField.clear() // Destroy old graphic
+      this.gameField.rect(0, 0, newWidth, newHeight)
+      this.gameField.fill(MainScene.GRASS_COLOR)
+    }
+  }
+
+  public onResize(newWidth: number, newHeight: number): void {
+    this.updateGameField(newWidth, newHeight)
+
+    // Recalculate objects positions on the scene
+    this.recalculateHerdsmanPosition(newWidth, newHeight)
+    this.recalculateSheepPositions(newWidth, newHeight)
+    this.recalculateYardPosition(newWidth, newHeight)
+
+    // Recalculate UI elements positions on the scene
+    this.recalculateUIElements(newWidth, newHeight)
   }
 
   public destroy(): void {

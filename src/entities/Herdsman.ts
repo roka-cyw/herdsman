@@ -41,18 +41,20 @@ export default class Herdsman extends MovableObject {
   public addFollower(): void {
     if (this.canAddFollower()) {
       this.followerCount++
-      console.log(`Followers: ${this.followerCount}/${Herdsman.MAX_FOLLOWERS}`)
     }
   }
 
   public removeFollower(): void {
     if (this.followerCount > 0) {
       this.followerCount--
-      console.log(`Followers: ${this.followerCount}/${Herdsman.MAX_FOLLOWERS}`)
     }
   }
 
   public getFollowerCount(): number {
     return this.followerCount
+  }
+
+  public removeAllFollowers(): void {
+    this.followerCount = 0
   }
 }
