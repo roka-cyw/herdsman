@@ -7,6 +7,9 @@ export default class Herdsman extends MovableObject {
   private static readonly HERDSMAN_RADIUS = 20
   private static readonly HERDSMAN_SPEED = 800
 
+  private static readonly MAX_FOLLOWERS = 5
+  private followerCount: number = 0
+
   constructor(x: number, y: number) {
     super(x, y)
     this.speed = Herdsman.HERDSMAN_SPEED
@@ -29,5 +32,27 @@ export default class Herdsman extends MovableObject {
 
   public moveToPosition(x: number, y: number): void {
     this.setTarget(x, y)
+  }
+
+  public canAddFollower(): boolean {
+    return this.followerCount < Herdsman.MAX_FOLLOWERS
+  }
+
+  public addFollower(): void {
+    if (this.canAddFollower()) {
+      this.followerCount++
+      console.log(`Followers: ${this.followerCount}/${Herdsman.MAX_FOLLOWERS}`)
+    }
+  }
+
+  public removeFollower(): void {
+    if (this.followerCount > 0) {
+      this.followerCount--
+      console.log(`Followers: ${this.followerCount}/${Herdsman.MAX_FOLLOWERS}`)
+    }
+  }
+
+  public getFollowerCount(): number {
+    return this.followerCount
   }
 }

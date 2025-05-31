@@ -22,6 +22,18 @@ export abstract class GameObject {
     this.displayObject.y = this.y
   }
 
+  public checkCollision(other: GameObject): boolean {
+    const thisPos = this.getPosition()
+    const otherPos = other.getPosition()
+
+    const dx = thisPos.x - otherPos.x
+    const dy = thisPos.y - otherPos.y
+    const distance = Math.sqrt(dx * dx + dy * dy)
+
+    const collisionRadius = 30
+    return distance < collisionRadius
+  }
+
   public setPosition(x: number, y: number): void {
     this.x = x
     this.y = y

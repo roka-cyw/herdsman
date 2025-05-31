@@ -45,9 +45,27 @@ export default class MainScene extends Scene {
     this.gameLoopFn = ticker => {
       const deltaTime = ticker.deltaTime / 60 // convert to seconds
       this.herdsman.update(deltaTime)
+      this.sheep.forEach(sheep => sheep.update(deltaTime))
+
+      this.checkHerdsmanSheepCollisions()
     }
 
     this.app.ticker.add(this.gameLoopFn)
+  }
+
+  private checkHerdsmanSheepCollisions(): void {
+    this.sheep.forEach(sheep => {
+      if (this.herdsman.checkCollision(sheep)) {
+        if (!sheep.getIsFollowing() && this.herdsman.canAddFollower()) {
+          sheep.setFollowing(true)
+          sheep.setHerdsman(this.herdsman)
+          this.herdsman.addFollower()
+          console.log('Sheep is now following!')
+        } else if (!sheep.getIsFollowing()) {
+          console.log('Maximum followers reached! (5/5)')
+        }
+      }
+    })
   }
 
   private createGameField(): void {
