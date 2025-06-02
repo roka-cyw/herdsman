@@ -26,8 +26,11 @@ export default class MainScene extends Scene {
   private uiElements: UIElement[] = []
   private displayScore!: DisplayScore
 
+  private isResizing: boolean = false
+
   private gameLoopFn?: (ticker: PIXI.Ticker) => void
   private clickHandler?: (event: PIXI.FederatedPointerEvent) => void
+  private resizeTimeoutId: number | null = null
 
   constructor(app: PIXI.Application) {
     super(app)
@@ -50,6 +53,10 @@ export default class MainScene extends Scene {
 
   private startGameLoop(): void {
     this.gameLoopFn = ticker => {
+      if (this.isResizing) {
+        return
+      }
+
       const deltaTime = ticker.deltaTime / 60 // convert to seconds
       this.herdsman.update(deltaTime)
       this.sheep.forEach(sheep => sheep.update(deltaTime))
@@ -195,6 +202,14 @@ export default class MainScene extends Scene {
     this.sheep = []
   }
 
+  private cleanUpIsResizingTimeout(): void {
+    this.resizeTimeoutId = setTimeout(() => {
+      this.isResizing = false
+      this.resizeTimeoutId = null
+      console.log('Game resumed after resize')
+    }, 100)
+  }
+
   protected updateGameField(newWidth: number, newHeight: number): void {
     if (this.gameField) {
       this.gameField.clear() // Destroy old graphic
@@ -204,6 +219,12 @@ export default class MainScene extends Scene {
   }
 
   public onResize(newWidth: number, newHeight: number): void {
+    // Prevent collision whilst resizing
+    this.isResizing = true
+    if (this.resizeTimeoutId !== null) {
+      clearTimeout(this.resizeTimeoutId)
+    }
+
     this.updateGameField(newWidth, newHeight)
 
     // Recalculate objects positions on the scene
@@ -213,6 +234,8 @@ export default class MainScene extends Scene {
 
     // Recalculate UI elements positions on the scene
     this.recalculateUIElements(newWidth, newHeight)
+
+    this.cleanUpIsResizingTimeout()
   }
 
   public destroy(): void {
@@ -229,6 +252,12 @@ export default class MainScene extends Scene {
     if (this.clickHandler) {
       this.app.stage.off('pointerdown', this.clickHandler)
       this.clickHandler = undefined
+    }
+
+    // Delete timers
+    if (this.resizeTimeoutId !== null) {
+      clearTimeout(this.resizeTimeoutId)
+      this.resizeTimeoutId = null
     }
 
     super.destroy()
