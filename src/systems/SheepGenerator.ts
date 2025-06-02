@@ -5,6 +5,7 @@ export default class SheepGenerator {
   private static readonly MAX_SPAWN_DELAY = 10000 // Number.MAX_SAFE_INTEGER
   private static readonly MIN_SHEEP_COUNT = 2
   private static readonly MAX_SHEEP_COUNT = 10
+  private static readonly CHANCE_TO_PATROL = 0.3 // 30% of chance
 
   private isActive: boolean = false
   private screenWidth: number
@@ -30,6 +31,7 @@ export default class SheepGenerator {
 
     const delay = this.getRandomDelay()
 
+    // TODO: Random sheep can overlap the yard
     this.spawnTimeoutId = setTimeout(() => {
       this.spawnSheep()
       this.scheduleNextSpawn() // Recursive call
@@ -37,17 +39,20 @@ export default class SheepGenerator {
   }
 
   private spawnSheep(): void {
-    const sheepCount = this.getRandomSheepCount()
+    const count = this.getRandomSheepCount()
 
-    for (let i = 0; i < sheepCount; i++) {
+    for (let i = 0; i < count; i++) {
       const x = Math.random() * this.screenWidth
       const y = Math.random() * this.screenHeight
 
-      const sheep = new Sheep(x, y)
-      this.onSheepSpawned(sheep) // Callback to the MainScene
-    }
+      const sheep = new Sheep(x, y, this.screenWidth, this.screenHeight, this.chanceToPatrol())
 
-    console.log(`Spawned ${sheepCount} sheep`)
+      this.onSheepSpawned(sheep)
+    }
+  }
+
+  private chanceToPatrol(): boolean {
+    return Math.random() < SheepGenerator.CHANCE_TO_PATROL
   }
 
   private getRandomDelay(): number {
