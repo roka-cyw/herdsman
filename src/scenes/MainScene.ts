@@ -1,11 +1,12 @@
 import * as PIXI from 'pixi.js'
 
 import { Scene } from '../core/Scene'
+import { UIElement } from '../core/abstracts/UIElement'
 import Herdsman from '../entities/Herdsman'
 import Sheep from '../entities/Sheep'
 import Yard from '../entities/Yard'
 import DisplayScore from '../systems/ui/DisplayScore'
-import { UIElement } from '../core/abstracts/UIElement'
+import SheepGenerator from '../systems/SheepGenerator'
 
 export default class MainScene extends Scene {
   private static readonly GRASS_COLOR = 0x4caf50
@@ -14,16 +15,19 @@ export default class MainScene extends Scene {
   private static readonly DISPLAY_SCORE_WIDTH_WITH_OFFSET = 180
   private static readonly OVERLAP_YARD_COLLISION_AREA = 100
 
+  // Entities
   private herdsman!: Herdsman
+  private sheepGenerator!: SheepGenerator
   private sheep: Sheep[] = []
   private followingSheep: Sheep[] = []
-
   private yard!: Yard
-  private displayScore!: DisplayScore
-  private uiElements: UIElement[] = []
 
-  private clickHandler?: (event: PIXI.FederatedPointerEvent) => void
+  // UI Elements
+  private uiElements: UIElement[] = []
+  private displayScore!: DisplayScore
+
   private gameLoopFn?: (ticker: PIXI.Ticker) => void
+  private clickHandler?: (event: PIXI.FederatedPointerEvent) => void
 
   constructor(app: PIXI.Application) {
     super(app)
@@ -35,8 +39,8 @@ export default class MainScene extends Scene {
 
     // Create Game Objects
     this.createHerdsman()
-    this.createSheeps()
     this.createYard()
+    this.createSheepGenerator()
 
     // Create UI Elements
     this.createDisplayScore()
@@ -71,17 +75,19 @@ export default class MainScene extends Scene {
     this.setupClickHandler(this.herdsman)
   }
 
-  private createSheeps(): void {
-    const sheepCount = Math.floor(Math.random() * 9) + 2 // Range 2-10
+  private createSheepGenerator(): void {
+    this.sheepGenerator = new SheepGenerator(
+      this.app.screen.width,
+      this.app.screen.height,
+      sheep => this.addSheepToGame(sheep) // Callback with MainScene context
+    )
 
-    for (let i = 0; i < sheepCount; i++) {
-      const randomX = Math.random() * this.app.screen.width
-      const randomY = Math.random() * this.app.screen.height
+    this.sheepGenerator.start()
+  }
 
-      const sheep = new Sheep(randomX, randomY)
-      this.sheep.push(sheep)
-      this.container.addChild(sheep.getDisplayObject())
-    }
+  private addSheepToGame(sheep: Sheep): void {
+    this.sheep.push(sheep)
+    this.container.addChild(sheep.getDisplayObject())
   }
 
   private createYard(): void {
@@ -175,18 +181,17 @@ export default class MainScene extends Scene {
   private destroyEntities(): void {
     if (this.herdsman) {
       this.herdsman.getDisplayObject().destroy()
-      console.log('Herdsman destroyed')
     }
 
     if (this.yard) {
       this.yard.getDisplayObject().destroy()
-      console.log('Yard destroyed')
     }
 
-    this.sheep.forEach((sheep, index) => {
-      sheep.getDisplayObject().destroy()
-      console.log(`Sheep ${index} destroyed`)
-    })
+    this.sheepGenerator.stop()
+    if (this.sheep) {
+      this.sheep.forEach(sheep => sheep.getDisplayObject().destroy())
+    }
+
     this.sheep = []
   }
 
