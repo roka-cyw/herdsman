@@ -6,6 +6,8 @@ export default class SheepGenerator {
   private static readonly MIN_SHEEP_COUNT = 2
   private static readonly MAX_SHEEP_COUNT = 10
   private static readonly CHANCE_TO_PATROL = 0.3 // 30% of chance
+  private static readonly YARD_OFFSET_X = 350
+  private static readonly YARD_OFFSET_Y = 50
 
   private isActive: boolean = false
   private screenWidth: number
@@ -42,8 +44,8 @@ export default class SheepGenerator {
     const count = this.getRandomSheepCount()
 
     for (let i = 0; i < count; i++) {
-      const x = Math.random() * this.screenWidth
-      const y = Math.random() * this.screenHeight
+      const x = SheepGenerator.YARD_OFFSET_X + Math.random() * (this.screenWidth - SheepGenerator.YARD_OFFSET_X)
+      const y = SheepGenerator.YARD_OFFSET_Y + Math.random() * (this.screenHeight - SheepGenerator.YARD_OFFSET_Y * 2)
 
       const sheep = new Sheep(x, y, this.screenWidth, this.screenHeight, this.chanceToPatrol())
 

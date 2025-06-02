@@ -10,7 +10,8 @@ import SheepGenerator from '../systems/SheepGenerator'
 
 export default class MainScene extends Scene {
   private static readonly GRASS_COLOR = 0x4caf50
-  private static readonly SHEEP_OFFSET = 4
+  private static readonly YARD_OFFSET = 4
+  private static readonly YARD_SIZE = 300
   private static readonly DISPLAY_SCORE_TOP_OFFSET = 20
   private static readonly DISPLAY_SCORE_WIDTH_WITH_OFFSET = 180
   private static readonly OVERLAP_YARD_COLLISION_AREA = 100
@@ -63,6 +64,7 @@ export default class MainScene extends Scene {
 
       this.checkHerdsmanSheepCollisions()
       this.checkHerdsmanYardCollision()
+      this.checkSheepYardCollisions()
     }
 
     this.app.ticker.add(this.gameLoopFn)
@@ -98,7 +100,7 @@ export default class MainScene extends Scene {
   }
 
   private createYard(): void {
-    this.yard = new Yard(MainScene.SHEEP_OFFSET, MainScene.SHEEP_OFFSET)
+    this.yard = new Yard(MainScene.YARD_OFFSET, MainScene.YARD_OFFSET)
     this.container.addChild(this.yard.getDisplayObject())
   }
 
@@ -147,6 +149,22 @@ export default class MainScene extends Scene {
     }
   }
 
+  private checkSheepYardCollisions(): void {
+    for (let i = this.sheep.length - 1; i >= 0; i--) {
+      const sheep = this.sheep[i]
+      const sheepPos = sheep.getPosition()
+
+      if (
+        sheepPos.x >= MainScene.YARD_OFFSET &&
+        sheepPos.x <= MainScene.YARD_SIZE &&
+        sheepPos.y >= MainScene.YARD_OFFSET &&
+        sheepPos.y <= MainScene.YARD_SIZE
+      ) {
+        this.sheep.splice(i, 1)
+        sheep.getDisplayObject().destroy()
+      }
+    }
+  }
   private deliverSheepToYard(): void {
     if (this.followingSheep.length > 0) {
       const sheepIdsToRemove = this.followingSheep.map(sheep => sheep.getId())
@@ -178,7 +196,7 @@ export default class MainScene extends Scene {
   }
 
   private recalculateYardPosition(newWidth: number, newHeight: number): void {
-    this.yard.setPosition(newWidth - newWidth + MainScene.SHEEP_OFFSET, newHeight - newHeight + MainScene.SHEEP_OFFSET)
+    this.yard.setPosition(newWidth - newWidth + MainScene.YARD_OFFSET, newHeight - newHeight + MainScene.YARD_OFFSET)
   }
 
   private recalculateUIElements(newWidth: number, newHeight: number): void {

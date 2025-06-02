@@ -17,6 +17,7 @@ export default class Yard extends StaticObject {
     yard.fill(Yard.YARD_COLOR)
 
     container.addChild(yard)
+    container.zIndex = 2
     return container
   }
 
